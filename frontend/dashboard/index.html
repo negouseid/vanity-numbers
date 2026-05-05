@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vanity Numbers Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Amazon Connect</p>
+          <h1>Vanity Numbers</h1>
+        </div>
+        <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh recent calls" title="Refresh">
+          <span aria-hidden="true">↻</span>
+        </button>
+      </header>
+
+      <section class="summary" aria-label="Dashboard summary">
+        <div>
+          <span class="label">Recent callers</span>
+          <strong id="callCount">0</strong>
+        </div>
+        <div>
+          <span class="label">Last sync</span>
+          <strong id="lastSync">-</strong>
+        </div>
+        <div>
+          <span class="label">Source</span>
+          <strong>AppSync</strong>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Recent vanity number results">
+        <div class="workspace-header">
+          <div>
+            <h2>Last five callers</h2>
+            <p>Generated vanity options stored by the Lambda workflow.</p>
+          </div>
+          <span id="statusText" class="status">Loading</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Caller</th>
+                <th>Top options</th>
+                <th>Best score</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="recentCallsBody">
+              <tr>
+                <td colspan="5" class="empty">Loading recent calls...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

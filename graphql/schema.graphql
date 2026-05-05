@@ -1,0 +1,21 @@
+type VanityNumber {
+  rank: Int!
+  displayValue: String!
+  suffix: String!
+  score: Int!
+  matchedWords: [String!]!
+  reason: String!
+}
+
+type RecentCall {
+  contactId: ID!
+  callerNumberMasked: String!
+  normalizedCallerNumber: String!
+  vanityNumbers: [VanityNumber!]!
+  topThreeVanityNumbers: [String!]!
+  createdAt: AWSDateTime!
+}
+
+type Query {
+  recentCalls(limit: Int = 5): [RecentCall!]!
+}

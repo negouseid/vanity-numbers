@@ -4,7 +4,7 @@
   "private": true,
   "description": "Amazon Connect vanity phone number generator using CDK, Lambda, DynamoDB, AppSync, CloudFront, and S3.",
   "bin": {
-    "vanity-number-generator": "bin/vanity-number-generator.js"
+    "vanity-number-generator": "bin/vanity-number-generator.ts"
   },
   "scripts": {
     "build": "tsc",
