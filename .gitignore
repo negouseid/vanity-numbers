@@ -19,6 +19,10 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+src/**/*.js
+src/**/*.d.ts
+test/**/*.js
+test/**/*.d.ts
 
 # Logs
 npm-debug.log*

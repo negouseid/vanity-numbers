@@ -3,8 +3,12 @@ import {
   normalizePhoneNumber
 } from './phone-normalizer';
 import { generateTopVanityNumbers } from './vanity-generator';
+import {
+  createDynamoVanityResultWriterFromEnv,
+  VanityResultWriter
+} from './storage';
 
-type ConnectEvent = {
+export type ConnectEvent = {
   Details?: {
     ContactData?: {
       ContactId?: string;
@@ -16,7 +20,7 @@ type ConnectEvent = {
   };
 };
 
-type ConnectResponse = {
+export type ConnectResponse = {
   status: 'OK' | 'ERROR';
   vanity1?: string;
   vanity2?: string;
@@ -25,35 +29,61 @@ type ConnectResponse = {
   message?: string;
 };
 
-export async function handler(event: ConnectEvent): Promise<ConnectResponse> {
-  try {
-    const contactId = event.Details?.ContactData?.ContactId;
-    const callerNumber = event.Details?.ContactData?.CustomerEndpoint?.Address;
+type HandlerDependencies = {
+  vanityResultWriter?: VanityResultWriter;
+  now?: () => Date;
+};
 
-    if (!contactId || !callerNumber) {
+export function createHandler(dependencies: HandlerDependencies = {}) {
+  return async function vanityGeneratorHandler(
+    event: ConnectEvent
+  ): Promise<ConnectResponse> {
+    const now = dependencies.now ?? (() => new Date());
+
+    try {
+      const contactId = event.Details?.ContactData?.ContactId;
+      const callerNumber =
+        event.Details?.ContactData?.CustomerEndpoint?.Address;
+
+      if (!contactId || !callerNumber) {
+        return {
+          status: 'ERROR',
+          message: 'Missing contact ID or caller number'
+        };
+      }
+
+      const normalizedDigits = normalizePhoneNumber(callerNumber);
+      const callerNumberMasked = maskPhoneNumber(callerNumber);
+      const vanityNumbers = generateTopVanityNumbers(normalizedDigits, 5);
+      const writer =
+        dependencies.vanityResultWriter ??
+        createDynamoVanityResultWriterFromEnv();
+
+      await writer.save({
+        contactId,
+        callerNumber,
+        normalizedCallerNumber: normalizedDigits,
+        callerNumberMasked,
+        vanityNumbers,
+        createdAt: now().toISOString()
+      });
+
+      return {
+        status: 'OK',
+        vanity1: vanityNumbers[0]?.displayValue,
+        vanity2: vanityNumbers[1]?.displayValue,
+        vanity3: vanityNumbers[2]?.displayValue,
+        callerNumberMasked
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+
       return {
         status: 'ERROR',
-        message: 'Missing contact ID or caller number'
+        message
       };
     }
-
-    const normalizedDigits = normalizePhoneNumber(callerNumber);
-    const callerNumberMasked = maskPhoneNumber(callerNumber);
-    const vanityNumbers = generateTopVanityNumbers(normalizedDigits, 5);
-
-    return {
-      status: 'OK',
-      vanity1: vanityNumbers[0]?.displayValue,
-      vanity2: vanityNumbers[1]?.displayValue,
-      vanity3: vanityNumbers[2]?.displayValue,
-      callerNumberMasked
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-
-    return {
-      status: 'ERROR',
-      message
-    };
-  }
+  };
 }
+
+export const handler = createHandler();
