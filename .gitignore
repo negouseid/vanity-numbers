@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# CDK output
+cdk.out/
+.cdk.staging/
+
+# Build output
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# Test output
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# AWS local files
+.aws-sam/
+.sam-cache/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.cache/
+.parcel-cache/
+.vite/
+
+# Lambda/package artifacts
+*.zip
+*.tar
+*.tgz

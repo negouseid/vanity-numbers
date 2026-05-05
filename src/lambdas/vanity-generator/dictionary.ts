@@ -1,0 +1,48 @@
+export const WORD_SCORES: Record<string, number> = {
+  FLOWERS: 2000,
+  SUPPORT: 1800,
+  SERVICE: 1700,
+  CONNECT: 1600,
+  CONTACT: 1500,
+
+  FLOWER: 1200,
+  MARKET: 1100,
+  OFFICE: 1000,
+  HEALTH: 1000,
+  REPAIR: 1000,
+  DESIGN: 1000,
+
+  HELP: 900,
+  HOME: 850,
+  CALL: 850,
+  CARE: 800,
+  TECH: 800,
+  SHOP: 750,
+  FOOD: 750,
+  TEAM: 700,
+  DEAL: 700,
+  SAVE: 700,
+  MOVE: 700,
+  AUTO: 700,
+  ROOF: 700,
+  TREE: 700,
+  LOAN: 650,
+  BANK: 650,
+  SAFE: 650,
+  BEST: 650,
+  GOOD: 600,
+  EASY: 600,
+  LOVE: 600,
+  STAR: 600,
+  PLUS: 600,
+
+  GO: 200,
+  HI: 200,
+  OK: 200,
+  US: 150
+};
+
+export const BLOCKED_WORDS = new Set<string>([
+  'BAD',
+  'HATE'
+]);

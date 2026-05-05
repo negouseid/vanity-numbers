@@ -1,0 +1,11 @@
+{
+  "Details": {
+    "ContactData": {
+      "ContactId": "test-contact-001",
+      "CustomerEndpoint": {
+        "Address": "+18003569377"
+      }
+    },
+    "Parameters": {}
+  }
+}
