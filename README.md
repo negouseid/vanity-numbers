@@ -55,7 +55,7 @@ This approach is intentionally deterministic and easy to explain in a review. In
 
 Before deploying, the reviewer needs:
 
-- Node.js 20 or later.
+- Node.js 22 or later.
 - AWS CLI configured for the target AWS account and region.
 - AWS CDK bootstrap completed in the target account and region.
 - AWS permissions to create Lambda, DynamoDB, IAM roles/policies, Amazon Connect, AppSync, S3, CloudFront, and CDK custom resources.
@@ -81,6 +81,20 @@ npm run synth
 ```
 
 All verification commands should pass before deploying.
+
+## Repository Layout
+
+This repo follows the standard AWS CDK TypeScript project layout, with application code grouped under `src` and deployable infrastructure under `lib`:
+
+- `bin/`: CDK app entrypoint. This is where the stack is instantiated.
+- `lib/`: CDK stack definition for Lambda, DynamoDB, Amazon Connect, AppSync, S3, and CloudFront.
+- `src/lambdas/vanity-generator/`: Lambda application code for phone normalization, vanity generation, scoring, handler logic, and DynamoDB persistence.
+- `frontend/dashboard/`: Static dashboard served through CloudFront.
+- `graphql/`: AppSync GraphQL schema.
+- `test/unit/`: Unit tests for Lambda behavior and core vanity-number logic.
+- `test/infrastructure/`: CDK infrastructure assertions.
+- `test/fixtures/`: Sample Amazon Connect event payloads.
+- `diagrams/`: Architecture diagram assets.
 
 ### 2. Deploy The Backend And Dashboard
 
@@ -330,13 +344,36 @@ Current coverage includes:
 
 I chose CDK because the project needs repeatable infrastructure and the app is AWS-native. The stack can deploy only the backend, deploy into an existing Connect instance, or create a new Connect instance when `CreateConnectInstance=true`.
 
+The Lambda uses Node.js 22, 256 MB of memory, and a 10-second timeout. The handler is CPU-light and dependency-light, so this is intentionally conservative for a small assignment. In production, I would validate the memory setting with AWS Lambda Power Tuning and use CloudWatch percentile metrics to right-size memory and timeout from real traffic.
+
 The Lambda uses a small dependency-injected persistence boundary so unit tests can verify DynamoDB writes without calling AWS. The production handler creates the DynamoDB writer from `VANITY_RESULTS_TABLE_NAME`.
+
+The handler validates the required Amazon Connect event fields before doing work. If the event is missing `ContactId` or the caller phone number, or if the normalized phone number is invalid, it returns an `ERROR` response instead of writing partial data to DynamoDB.
 
 The DynamoDB table uses `contactId` as the primary key and adds `RecentCallsIndex` with `recentCallsPartition` and `createdAt`. That supports the bonus "last five callers" dashboard without changing the write model later.
 
 The contact flow is generated in CDK so reviewers do not have to manually recreate the flow. Phone number claiming remains manual because AWS account quotas, country requirements, number availability, and phone-number ids are account-specific.
 
 The dashboard is a static frontend deployed to a private S3 bucket and served through CloudFront. It reads a generated `config.js` file containing the AppSync endpoint and API key, then runs the `recentCalls(limit: 5)` GraphQL query. For a production app, I would replace the API key with Cognito or IAM authorization and add user-level access controls.
+
+I used AppSync because this dashboard only needs a small typed read API over DynamoDB. AppSync lets the static frontend query DynamoDB through a GraphQL contract without adding another Lambda/API Gateway read service. API Gateway plus Lambda would also be valid, and I would choose that instead if the dashboard needed complex server-side business logic, request orchestration, or a REST contract.
+
+## Operational Characteristics
+
+This implementation is designed to be resilient and cost-effective at assignment scale:
+
+- Lambda and DynamoDB use managed AWS scaling, so there are no servers to patch or size manually.
+- DynamoDB uses on-demand billing, which is cost-effective for unpredictable demo traffic.
+- S3 and CloudFront serve the dashboard cheaply and keep static traffic away from Lambda.
+- AppSync provides a managed read API for the dashboard and avoids a dedicated read Lambda.
+- The Connect flow has a fallback message path if Lambda invocation fails.
+
+Expected runtime profile:
+
+- The handler performs deterministic in-memory scoring and one DynamoDB write.
+- Warm invocations should normally complete well under the 10-second timeout.
+- Cold starts should be small because the Lambda bundle is small and uses the Node.js runtime without a large framework.
+- Actual min, max, average, p95, cold-start, and warm-start timings should be captured from CloudWatch Logs/Insights after live traffic is available.
 
 ## Shortcuts And Tradeoffs
 

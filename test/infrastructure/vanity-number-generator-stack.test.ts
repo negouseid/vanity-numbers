@@ -53,7 +53,7 @@ describe('VanityNumberGeneratorStack', () => {
 
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
-      Runtime: 'nodejs20.x',
+      Runtime: 'nodejs22.x',
       Architectures: ['arm64'],
       Environment: {
         Variables: {

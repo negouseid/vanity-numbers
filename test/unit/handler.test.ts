@@ -61,6 +61,22 @@ describe('vanity generator handler', () => {
     expect(writer.save).not.toHaveBeenCalled();
   });
 
+  it('returns an error for malformed Amazon Connect events', async () => {
+    const writer = createMockWriter();
+    const handler = createHandler({
+      vanityResultWriter: writer,
+      now
+    });
+
+    const result = await handler({});
+
+    expect(result).toEqual({
+      status: 'ERROR',
+      message: 'Missing contact ID or caller number'
+    });
+    expect(writer.save).not.toHaveBeenCalled();
+  });
+
   it('returns an error when saving the vanity result fails', async () => {
     const writer = createMockWriter();
     writer.save.mockRejectedValue(new Error('DynamoDB write failed'));

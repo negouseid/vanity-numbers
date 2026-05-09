@@ -168,7 +168,7 @@ export class VanityNumberGeneratorStack extends cdk.Stack {
           'handler.ts'
         ),
         handler: 'handler',
-        runtime: lambda.Runtime.NODEJS_20_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         architecture: lambda.Architecture.ARM_64,
         memorySize: 256,
         timeout: cdk.Duration.seconds(10),
