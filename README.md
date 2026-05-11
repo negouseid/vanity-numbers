@@ -234,6 +234,24 @@ If CDK created the instance and you claimed a number in it, use:
 npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=<phone-number-id>
 ```
 
+For the current deployed demo, the claimed Amazon Connect phone number is:
+
+```text
++1 877-424-9502
+```
+
+Its phone number id is:
+
+```text
+4c8d6583-0d59-4a0b-8463-fab86128e181
+```
+
+The deploy command used to associate it with the CDK-managed contact flow is:
+
+```bash
+npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=4c8d6583-0d59-4a0b-8463-fab86128e181
+```
+
 ### 7. Verify The Full Flow
 
 After the phone number is associated with the contact flow:
@@ -244,9 +262,9 @@ After the phone number is associated with the contact flow:
 4. Confirm the caller appears in the last-five-callers dashboard.
 5. Check the DynamoDB table from `VanityResultsTableName` to verify the stored item contains the caller number and best five vanity results.
 
-## Phone Number Quota Blocker
+## Phone Number Quota Note
 
-Amazon Connect phone number claiming can be blocked by resource-level quotas. In some AWS accounts, the `Phone numbers per instance` quota for a newly-created instance may show an applied quota value of `0`, even though the AWS default quota is higher. When that happens, Connect returns:
+Amazon Connect phone number claiming was initially blocked by a resource-level quota. In some AWS accounts, the `Phone numbers per instance` quota for a newly-created instance may show an applied quota value of `0`, even though the AWS default quota is higher. When that happens, Connect returns:
 
 ```text
 The allowed limit for claimed phone numbers has been exceeded for your instance
@@ -268,11 +286,11 @@ After AWS approves the quota increase, return to the Connect admin website, clai
 npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=<phone-number-id>
 ```
 
-The application backend, contact flow, and phone-number association support are already implemented. If quota approval is pending, the remaining blocked step is claiming an actual public phone number in the AWS account.
+For this deployment, the quota issue has been resolved and `+1 877-424-9502` has been claimed and attached to `vanity-numbers-flow`. If the number was just claimed, inbound toll-free routing may take some time to propagate before live calls complete reliably.
 
-## Smoke Test Without A Phone Number
+## Smoke Test Without A Live Call
 
-The Lambda can be tested directly while waiting for phone-number quota approval. Use the deployed function name from the stack output:
+The Lambda can be tested directly without placing a phone call. Use the deployed function name from the stack output:
 
 ```bash
 aws lambda invoke \
@@ -297,7 +315,7 @@ Expected response shape:
 
 The Lambda also writes the caller number and best five vanity results to DynamoDB.
 
-You can verify the dashboard without a phone number by running the Lambda smoke test first and then refreshing `DashboardUrl`.
+You can verify the dashboard without placing a live call by running the Lambda smoke test first and then refreshing `DashboardUrl`.
 
 ## Troubleshooting
 
@@ -381,7 +399,7 @@ Expected runtime profile:
 - The contact flow is minimal: invoke Lambda, speak three values, handle errors, disconnect.
 - The DynamoDB removal policy is `DESTROY` for easier cleanup in a demo account. For production, use `RETAIN`.
 - Lambda errors are returned to Connect as `ERROR` responses. Production systems should add structured logging, alarms, and richer fallback prompts.
-- The CDK-created Connect instance still requires manual admin/user setup and phone number claiming.
+- New CDK-created Connect instances still require manual admin/user setup and phone number claiming.
 - The dashboard uses an AppSync API key for a small demo deployment. Production should use authenticated users and tighter API authorization.
 
 ## Production Considerations
@@ -411,11 +429,12 @@ Implemented:
 - Unit and infrastructure tests.
 - Architecture diagram.
 - Bonus dashboard with AppSync GraphQL API, private S3 hosting, and CloudFront.
+- Claimed Amazon Connect phone number `+1 877-424-9502`.
+- Phone number association with `vanity-numbers-flow`.
 
 Pending:
 
-- AWS approval for a phone-number quota increase or access to an existing claimed number.
-- Live inbound call test after a number is available.
+- Live inbound call test after toll-free routing propagation completes.
 
 ## Tech Stack
 
