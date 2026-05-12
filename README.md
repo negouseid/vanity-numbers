@@ -59,7 +59,7 @@ Before deploying, the reviewer needs:
 - AWS CLI configured for the target AWS account and region.
 - AWS CDK bootstrap completed in the target account and region.
 - AWS permissions to create Lambda, DynamoDB, IAM roles/policies, Amazon Connect, AppSync, S3, CloudFront, and CDK custom resources.
-- An AWS region where Amazon Connect is available. The project was tested in `us-east-1`.
+- An AWS region where Amazon Connect is available. The working demo deployment was tested in `us-west-2`.
 
 If the AWS account has not been bootstrapped for CDK yet, run:
 
@@ -135,6 +135,13 @@ After deployment, CDK prints outputs similar to:
 - `ManagedConnectInstanceId`: Amazon Connect instance id when CDK created the instance.
 - `ManagedConnectInstanceArn`: Amazon Connect instance ARN when CDK created the instance.
 - `VanityContactFlowArn`: contact flow ARN when a Connect instance is configured.
+
+Current working demo outputs:
+
+- `DashboardUrl`: `https://d11q46kwproc2d.cloudfront.net`
+- `DashboardGraphqlUrl`: `https://yxwnloqcije6jj7k7fkgt63tjy.appsync-api.us-west-2.amazonaws.com/graphql`
+- `VanityGeneratorFunctionName`: `VanityNumberGeneratorStac-VanityGeneratorFunctionE-z7cqjkOQG3V8`
+- `VanityResultsTableName`: `VanityNumberGeneratorStack-VanityResultsTable61841E4E-1ACZA31DQFQ40`
 
 ### 4. Deploy Into An Existing Amazon Connect Instance
 
@@ -234,22 +241,32 @@ If CDK created the instance and you claimed a number in it, use:
 npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=<phone-number-id>
 ```
 
-For the current deployed demo, the claimed Amazon Connect phone number is:
+For the current working deployed demo, the claimed Amazon Connect phone number is:
 
 ```text
-+1 877-424-9502
++1 877-426-7567
 ```
 
 Its phone number id is:
 
 ```text
-4c8d6583-0d59-4a0b-8463-fab86128e181
+19978cab-c551-442e-9601-b02bf98d4a98
 ```
 
-The deploy command used to associate it with the CDK-managed contact flow is:
+The working Amazon Connect instance is:
+
+```text
+vanity-number-demo-v2
+e95a2b37-66cc-4201-b967-4eca9eaed2b3
+https://vanity-number-demo-v2.my.connect.aws
+```
+
+The deploy command used to associate the working number with the CDK-managed contact flow is:
 
 ```bash
-npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=4c8d6583-0d59-4a0b-8463-fab86128e181
+AWS_PROFILE=vanity-new AWS_REGION=us-west-2 npm run deploy -- \
+  --parameters ConnectInstanceId=e95a2b37-66cc-4201-b967-4eca9eaed2b3 \
+  --parameters PhoneNumberId=19978cab-c551-442e-9601-b02bf98d4a98
 ```
 
 ### 7. Verify The Full Flow
@@ -286,7 +303,7 @@ After AWS approves the quota increase, return to the Connect admin website, clai
 npm run deploy -- --parameters CreateConnectInstance=true --parameters PhoneNumberId=<phone-number-id>
 ```
 
-For this deployment, the quota issue has been resolved and `+1 877-424-9502` has been claimed and attached to `vanity-numbers-flow`. If the number was just claimed, inbound toll-free routing may take some time to propagate before live calls complete reliably.
+The final working demo uses a `us-west-2` Connect instance where the phone-number and concurrent-call quotas allow inbound calls. If a reviewer sees a fast busy tone or no Connect contact records in a different AWS account, check this quota in addition to `Phone numbers per instance`.
 
 ## Smoke Test Without A Live Call
 
@@ -429,12 +446,9 @@ Implemented:
 - Unit and infrastructure tests.
 - Architecture diagram.
 - Bonus dashboard with AppSync GraphQL API, private S3 hosting, and CloudFront.
-- Claimed Amazon Connect phone number `+1 877-424-9502`.
+- Claimed Amazon Connect phone number `+1 877-426-7567`.
 - Phone number association with `vanity-numbers-flow`.
-
-Pending:
-
-- Live inbound call test after toll-free routing propagation completes.
+- Live inbound call test completed in the working `us-west-2` deployment.
 
 ## Tech Stack
 
